@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Frelo-Status</title>
+    <link href="/static/main.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+</head>
+<body>
+<div>
+    <h1>Frelos</h1>
+    <h2 id="time-headline"></h2>
+    <div id="map"></div>
+    <div>
+        <input type="range"
+               style="width: 75%"
+               id="timestamp"
+               oninput="fetchStatus(timestamps[this.value - 1])"
+               name="Zeit"
+               list="timestamps"
+               min="1"
+               max="{{ report_times | length }}"/>
+        <datalist id="timestamps">
+
+        </datalist>
+    </div>
+</div>
+</body>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/static/main.js"></script>
+<script>
+    var timestamps = []
+    {% for ts in report_times %}
+        timestamps.push({
+            "last_reported": "{{ ts.last_reported }}",
+            "readable": "{{ ts.readable }}"
+        })
+    {% endfor %}
+    document.getElementById("timestamp").value = timestamps.length;
+    fetchStatus(timestamps[timestamps.length - 1])
+</script>
+</html>
