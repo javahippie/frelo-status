@@ -26,8 +26,8 @@ function fetchStatus(ts) {
 }
 
 function refreshMap(v) {
-    const bike_no = v.BIKES_AVAILABLE;
-    L.marker([v.LAT, v.LON], {
+    const bike_no = v.bikes_available;
+    L.marker([v.lat, v.lon], {
         icon: new L.DivIcon({
             className: 'my-div-icon',
             html: `<div class="frelo-station" style="height: ${bike_no * 3}px; width: 5px; background: rgb(9,121,25);"></div>`,
