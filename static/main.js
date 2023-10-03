@@ -28,7 +28,7 @@ function fetchStatus(ts) {
 function refreshMap(v) {
     const bike_no = v.bikes_available;
     console.log("Setting marker : " + v.name)
-    L.marker([v.lat, v.lon], {
+    var marker = L.marker([v.lat, v.lon], {
         icon: new L.DivIcon({
             className: 'my-div-icon',
             html: `<div class="frelo-station" style="height: ${bike_no * 3}px; width: 5px; background: rgb(9,121,25);"></div>`,
@@ -37,4 +37,5 @@ function refreshMap(v) {
         })
     }).addTo(markers);
 
+    marker.bindPopup(`<b>${v.name}</b><br>Verfügbar: ${bike_no} Räder<br> <a href="/history/${v.id}">Details</a>`).openPopup();
 }

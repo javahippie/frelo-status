@@ -132,9 +132,33 @@ def load_report_times():
     return rows
 
 
+def load_station_history(station_id: str):
+    with sqlite3.connect('instance/stations.db') as sql_connection:
+        sql_connection.row_factory = dict_factory
+        sql = '''SELECT strftime('%Y-%m-%d %H:00', DATETIME(s.last_reported, 'unixepoch', 'localtime')) date_time, avg(s.bikes_available) bikes_available, d.name
+                 from station_status s
+                 left join station_detail d
+                 on s.id = d.id
+                 where s.id = :station_id
+                 GROUP BY strftime('%Y-%m-%d %H:00', DATETIME(s.last_reported, 'unixepoch', 'localtime'))
+                 order by s.bikes_available desc;'''
+        cur = sql_connection.cursor()
+        cur.execute(sql, {'station_id': station_id})
+        rows = cur.fetchall()
+    return rows
+
+
 @app.route('/')
 def route_with_ts():
     return env.get_template("home.html").render({"report_times": load_report_times()})
+
+
+@app.route('/history/<station_id>')
+def route_history(station_id: str):
+    station_history = load_station_history(station_id)
+    return env.get_template("history.html").render({"history": station_history,
+                                                    "max_bikes": station_history[0]['bikes_available'],
+                                                    "station_name": station_history[0]['name']})
 
 
 if __name__ == '__main__':
