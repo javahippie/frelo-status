@@ -32,10 +32,27 @@ class StationStatus(db.Model):
     is_returning = db.Column(db.Integer, nullable=False)
 
 
+class WeatherStatus(db.Model):
+    last_reported = db.Column(db.TIMESTAMP, primary_key=True)
+    temperature_in_c = db.Column(db.Float, nullable=False)
+    windspeed = db.Column(db.Float, nullable=False)
+    weather_code = db.Column(db.Integer, nullable=False)
+
+
 env = Environment(
     loader=PackageLoader("app"),
     autoescape=select_autoescape()
 )
+
+
+@app.route('/weather')
+def retrieve_weather_details():
+    with sqlite3.connect('instance/stations.db') as sql_connection:
+        connection = http.client.HTTPSConnection('api.open-meteo.com')
+        headers = {'Content-type': 'application/json'}
+        connection.request('GET', '/v1/forecast?latitude=48.01164&longitude=7.82282&current_weather=true', None, headers)
+        response = json.loads(connection.getresponse().read().decode())['current_weather']
+    return response
 
 
 @app.route('/station')
@@ -45,12 +62,13 @@ def retrieve_station_details():
         headers = {'Content-type': 'application/json'}
         connection.request('GET', '/maps/gbfs/v1/nextbike_df/de/station_information.json', None, headers)
         response = json.loads(connection.getresponse().read().decode())
+        cur = sql_connection.cursor()
+        cur.execute('DELETE FROM station_detail')
         for status in response['data']['stations']:
             sql = '''INSERT INTO station_detail (ID, NAME, SHORT_NAME, LAT, LON, REGION_ID, CAPACITY)
                      VALUES (:station_id, :name, :short_name, :lat, :lon, :region_id, :capacity);'''
             if 'capacity' not in status:
                 status['capacity'] = 0
-            cur = sql_connection.cursor()
             cur.execute(sql, status)
         sql_connection.commit()
     return response
@@ -95,8 +113,9 @@ def load_status_xhr(ts: int):
                  FROM station_status s
                  LEFT JOIN station_detail d 
                  ON s.ID = d.ID
-                 where (:ts is null and s.LAST_REPORTED = ((select max(LAST_REPORTED) from station_status))) 
-                       or s.LAST_REPORTED = :ts'''
+                 where ((:ts is null and s.LAST_REPORTED = ((select max(LAST_REPORTED) from station_status))) 
+                            or s.LAST_REPORTED = :ts)
+                        and d.lat is not null and d.lon is not null'''
         cur = sql_connection.cursor()
         cur.execute(sql, {'ts': ts})
         rows = cur.fetchall()

@@ -27,6 +27,7 @@ function fetchStatus(ts) {
 
 function refreshMap(v) {
     const bike_no = v.bikes_available;
+    console.log("Setting marker : " + v.name)
     L.marker([v.lat, v.lon], {
         icon: new L.DivIcon({
             className: 'my-div-icon',
