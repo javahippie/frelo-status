@@ -22,7 +22,7 @@
         width = 800 - margin.left - margin.right,
         height = 400 - margin.top - margin.bottom;
 
-        var parseTime = d3.utcParse("%Y-%m-%d %H:%M");
+    var parseTime = d3.utcParse("%Y-%m-%d %H:%M");
 
     var availability = []
     {% for point in history %}
@@ -42,9 +42,12 @@
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    var start = new Date();
+    start.setTime(start.getTime() - 24 * 60 * 60 * 1000 * 7)
+
     // X scale and Axis
     var x = d3.scaleUtc()
-        .domain([new Date("2023-09-26"), new Date()])         // This is the min and the max of the data: 0 to 100 if percentages
+        .domain([start, new Date()])         // This is the min and the max of the data: 0 to 100 if percentages
         .range([0, width]);       // This is the corresponding value I want in Pixel
     sVg
         .append('g')

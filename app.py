@@ -123,7 +123,10 @@ def load_status_xhr(ts: int):
 
 
 def load_report_times():
-    sql = '''SELECT distinct last_reported, DATETIME(last_reported, 'unixepoch') as readable from station_status'''
+    sql = '''SELECT distinct last_reported, 
+                             strftime('%d.%m.%Y, %H:%M', DATETIME(last_reported, 'unixepoch', 'localtime')) as readable
+                from station_status
+                order by last_reported asc;'''
     with sqlite3.connect('instance/stations.db') as sql_connection:
         sql_connection.row_factory = sqlite3.Row
         cur = sql_connection.cursor()
